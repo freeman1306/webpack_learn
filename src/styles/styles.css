@@ -1,0 +1,26 @@
+@import 'roboto.css';
+@import 'normalize.css';
+
+body {
+    font-family: 'roboto', sans-serif;
+}
+
+
+.container {
+    padding-top: 2rem;
+    max-width: 0 auto;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+
+.logo {
+    background-image: url('../assets/breed.png');
+    background-size: cover;
+    height: 200px;
+    width: 200px;
+    margin: 0 auto;
+}
