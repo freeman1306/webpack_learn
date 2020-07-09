@@ -1,10 +1,57 @@
-
 // Tools for webpack
 const path = require('path')
 
 //Plugins
 const HTMLWebpackplugin = require("html-webpack-plugin")
-const { CleanWebpackPlugin} = require('clean-webpack-plugin')
+const {
+    CleanWebpackPlugin
+} = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+
+
+
+const isDev = process.env.NODE_ENV === 'development'
+const isProd = !isDev
+
+const filename = ext => isDev ? `[name].${ext}` : `[name].[hash].${ext}`
+
+const cssLoaders = (extra) => {
+    const loaders = [
+        {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+                hmr: isDev,
+                reloadAll: true
+            }
+        },
+        'css-loader',
+    ]
+
+    if(extra) loaders.push(extra)
+
+    return loaders
+}
+
+
+const optimization = () => {
+    const config = {
+        splitChunks: {
+            chunks: 'all'
+        }
+    }
+
+    if (isProd) {
+         config.minimizer = [
+            new OptimizeCssAssetsPlugin(),
+            new TerserPlugin()
+        ]
+    }
+
+    return config
+}
 
 
 
@@ -24,7 +71,7 @@ module.exports = {
 
 
     output: {
-        filename: '[name].[contenthash].js',
+        filename: filename('js'),
         path: path.resolve(__dirname, 'dist')
     },
 
@@ -38,17 +85,31 @@ module.exports = {
         }
     },
 
-    optimization: {
-        splitChunks: {
-            chunks: 'all'
-        }
+    optimization: optimization(),
+
+    devServer: {
+        port: 4200,
+        hot: isDev
     },
 
     plugins: [
         new HTMLWebpackplugin({
-            template: './index.html'
+            template: './index.html',
+            minify: {
+                collapseWhitespace: isProd
+            }
         }),
         new CleanWebpackPlugin(),
+        new CopyWebpackPlugin({
+            patterns: [{
+                from: path.resolve(__dirname, 'src/favicon.ico'),
+                to: path.resolve(__dirname, 'dist')
+            }]
+        }),
+        new MiniCssExtractPlugin({
+            filename: filename('css')
+        }),
+
     ],
 
 
@@ -57,10 +118,6 @@ module.exports = {
 
     module: {
         rules: [{
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
-            },
-            {
                 test: /\.(png|jpg|svg|gif)$/,
                 use: ['file-loader']
             },
@@ -75,7 +132,18 @@ module.exports = {
             {
                 test: /\.csv$/,
                 use: ['csv-loader']
-            }
+            },
+            {
+                test: /\.css$/i,
+                use: cssLoaders(),
+            },
+                {
+                test: /\.s[ca]ss$/i,
+                use:cssLoaders('sass-loader'),
+            {
+                test: /\.less$/,
+                use: cssLoaders('less-loaders')
+            },
         ]
     }
 
