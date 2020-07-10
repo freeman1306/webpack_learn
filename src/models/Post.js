@@ -14,7 +14,13 @@ export default class Post {
     }
 
     get upperCaseTitle() {
-        this.title.toUpperCase()
+       return this.title.toUpperCase()
     }
 
 }
+
+
+import('lodash').then(_ => {
+    console.log('Lodash', _.random(0, 42, true));
+    
+})
